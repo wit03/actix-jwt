@@ -1,10 +1,20 @@
-use actix_web::{web, App, HttpServer};
+//dependencies
+use actix_web::{dev::ServiceRequest, web, App, error, HttpServer};
+use diesel::prelude::*;
+use diesel::r2d2::{self, ConnectionManager};
 
+//modules
+mod errors;
 mod handlers;
+mod models;
+mod schema;
+
+//types
+pub type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
 #[actix_rt::main]
-
 async fn main() -> std::io::Result<()> {
+    dotenv::dotenv().ok(); //get value from .env file
     std::env::set_var("RUST_LOG", "actix_web=debug");
     HttpServer::new(move || {
         App::new()
