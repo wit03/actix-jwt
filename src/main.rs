@@ -1,4 +1,6 @@
 //dependencies
+extern crate diesel;
+
 use actix_web::{dev::ServiceRequest, web, App, error, HttpServer};
 use diesel::prelude::*;
 use diesel::r2d2::{self, ConnectionManager};

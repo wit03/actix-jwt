@@ -3,7 +3,8 @@ use serde::{ Deserialize, Serialize };
 use diesel::sql_types::Timestamp;
 
 #[derive(Debug, Serialize, Deserialize, Queryable)]
-pub struct Users {
+
+pub struct User {
     pub id: i32,
     pub first_name: String,
     pub last_name: String,
@@ -20,4 +21,3 @@ pub struct NewUser<'a> {
     pub email: &'a str,
     pub created_at: chrono::NaiveDateTime,
 }
-

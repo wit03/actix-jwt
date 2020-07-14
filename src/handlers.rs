@@ -3,11 +3,11 @@ use super::schema::users::dsl::*;
 use super::Pool;
 use crate::diesel::QueryDsl;
 use crate::diesel::RunQueryDsl;
-use actix_web::{ web, Error, HttpResponse };
-use serde::{ Deserialize, Serialize };
-use std::vec::vec;
+use actix_web::{web, Error, HttpResponse};
+use diesel::dsl::{delete, insert_into};
+use serde::{Deserialize, Serialize};
+use std::vec::Vec;
 use actix_web::error::PayloadError::Http2Payload;
-use crate::models::Users;
 use diesel::query_builder::QueryFragment;
 
 //type
