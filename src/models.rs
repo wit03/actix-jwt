@@ -18,6 +18,6 @@ pub struct NewUser<'a> {
     pub first_name: &'a str,
     pub last_name: &'a str,
     pub email: &'a str,
-    pub created_at: chrono::NaiveDateTime
+    pub created_at: chrono::NaiveDateTime,
 }
 
