@@ -8,6 +8,7 @@ use serde::{ Deserialize, Serialize };
 use std::vec::vec;
 use actix_web::error::PayloadError::Http2Payload;
 use crate::models::Users;
+use diesel::query_builder::QueryFragment;
 
 //type
 #[derive(Deserialize, Deserialize, Debug)]
@@ -15,6 +16,38 @@ pub struct InputUser {
     pub first_name: String,
     pub last_name: String,
     pub email: String
+}
+
+fn get_all_users(pool: web::Data<Pool>) -> Result<Vec<User>, diesel::result::Error> {
+    let conn = pool.get().unwrap();
+    let items = users.load::<User>(&conn);
+    OK(items)
+}
+
+fn db_get_user_by_id(pool: web::Data<Pool>, user_id: i32) -> Result<User, diesel::result::Error> {
+    let conn = pool.get().unwrap();
+    users.find(user_id).get_result::<User>(&conn)
+}
+
+fn add_single_user(
+    db: web::Data<Pool>,
+    item: web::Json<InputUser>,
+) -> Result<User, diesel::result::Error> {
+    let conn  = db.get().unwrap();
+    let new_user = NewUser {
+        first_name: &item.first_name,
+        last_name: &item.last_name,
+        email: &item.email,
+        created_at: chrono::Local::now().naive_local()
+    };
+    let res = insert_into(users).values(&new_user).get_result(&conn);
+    Ok(res)
+}
+
+fn delete_single_user(db: web::Data<Pool>, user_id: i32) -> Result<usize, diesel::result::Error> {
+    let conn = db.get().unwrap();
+    let count = delete(users.find(user_id)).execute(&conn)?;
+    Ok(count)
 }
 
 //GET /users
@@ -25,14 +58,6 @@ pub async fn get_users(db: web::Data<Pool>) -> Result<HttpResponse, Error> {
         .map_err(|_| HttpResponse::InternalServerError())?
     )
 }
-
-fn get_all_users(pool: web::Data<Pool>) -> Result<Vec<User>, diesel::result::Error> {
-    let conn = pool.get().unwrap();
-    let items = users.load::<User>(&conn);
-    OK(items)
-}
-
-fn add_single_ser
 
 //GET /users/{id}
 pub async fn get_user_by_id( db: web::Data<Pool>, user_id: web::Path<i32> ) -> Result<HttpResponse, Error> {
@@ -50,7 +75,24 @@ pub async fn add_user(
     db: web::Data<Pool>,
     item: web::Json<InputUser>
 ) -> Result<HttpResponse, Error> {
-    Ok(web::block(move || add_))
+    Ok(web::block(move || add_single_user(db, item))
+        .await
+        .map(|user| HttpResponse::Created().json(user))
+        .map_err(|_| HttpResponse::InternalServerError())?
+    )
+}
+
+//DELETE /user/{id}
+pub async fn delete_user(
+    db: web::Data<Pool>,
+    user_id: web::Path<i32>
+) -> Result<HttpResponse, Error> {
+    Ok(
+        web::block(move || delete_single_user(db, user_id.into_inner()))
+            .await
+            .map(|user| HttpResponse::Ok().json(user))
+            .mapp_err(|_| HttpResponse::InternalServerError())?
+    )
 }
 
 
